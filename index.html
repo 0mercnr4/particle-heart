@@ -22,7 +22,7 @@
 <body>
   <canvas id="art" role="img" aria-label="Siyah zeminde pembe parçacıklardan oluşan, atan bir kalp animasyonu"></canvas>
   <p class="hint" id="hint" aria-hidden="true">Dokun · dağıt &nbsp;&nbsp;/&nbsp;&nbsp; çift dokun · baştan</p>
-  <p class="sr-only">Pembe parçacıklar dışarıdan süzülerek bir kalp oluşturur ve kalp atmaya başlar. Dokunmak kalbi dağıtıp yeniden toplar, çift dokunmak animasyonu baştan başlatır.</p>
+  <p class="sr-only">Pembe çizgiler kalem gibi tek tek çizilerek bir kalp oluşturur ve kalp atmaya başlar. Dokunmak kalbi dağıtıp yeniden toplar, çift dokunmak animasyonu baştan başlatır.</p>
   <script>
   (() => {
     'use strict';
@@ -38,6 +38,7 @@
     const BEAT_PERIOD = 1.15;    // seconds per heartbeat
     const COLORS = 18, WIDTHS = [0.55, 0.95, 1.4];
     const DUST = 110;
+    const DRAW_START = 0.4, PASS1 = 3.4, PASS2 = 7.2;   // seconds, as in the original timing
 
     const rand = (min, max) => min + Math.random() * (max - min);
     const easeOutCubic = v => 1 - (1 - v) ** 3;
@@ -91,13 +92,13 @@
         const [hx, hy] = heart(angle, scale);
         const dir = Math.atan2(hy, hx);
         const len = detail ? rand(2, 12) : rand(4, 14);
-        const startAngle = rand(0, Math.PI * 2), startRadius = rand(430, 780);
-        const t0 = detail ? rand(2.4, 7.4) : rand(0, 3.2);
-        const dur = detail ? rand(0.9, 1.5) : rand(1.1, 1.8);
+        // Turtle-style: strokes are drawn one after another, like the loop in the video's code.
+        // Pass 1 lays down the 1000 form strokes, pass 2 the 3500 fill strokes.
+        const order = detail ? (i - FILL) / DETAIL : i / FILL;
+        const t0 = detail ? DRAW_START + PASS1 + order * PASS2 : DRAW_START + order * PASS1;
+        const dur = rand(0.12, 0.2);
         particles.push({
           hx, hy: hy + Y_SHIFT, dx: Math.cos(dir) * len, dy: Math.sin(dir) * len,
-          sx: Math.cos(startAngle) * startRadius, sy: Math.sin(startAngle) * startRadius,
-          swirl: rand(1.1, 2.4) * (Math.random() < 0.5 ? -1 : 1),
           t0, t1: t0 + dur, dur,
           bucket: Math.floor(Math.random() * COLORS) * WIDTHS.length + Math.floor(Math.random() * WIDTHS.length),
           ox: 0, oy: 0, bx: 0, by: 0, bt: -1, x: 0, y: 0
@@ -175,14 +176,8 @@
       const repelRadius = 95;
       for (const p of particles) {
         let x = p.hx, y = p.hy;
-        if (time < p.t1) {
-          const k = Math.max(0, (time - p.t0) / p.dur);
-          const e = easeOutCubic(Math.min(1, k));
-          const rest = 1 - e, angle = p.swirl * rest;
-          const ox = (p.sx - p.hx) * rest, oy = (p.sy - p.hy) * rest;
-          x += ox * Math.cos(angle) - oy * Math.sin(angle);
-          y += ox * Math.sin(angle) + oy * Math.cos(angle);
-        }
+        // How far the pen has travelled along this stroke (0..1).
+        p.grow = time >= p.t1 ? 1 : easeOutCubic(Math.max(0, (time - p.t0) / p.dur));
         if (p.bt >= 0) {
           const tau = time - p.bt;
           if (tau > 4.5) p.bt = -1;
@@ -249,16 +244,20 @@
       layerCtx.clearRect(0, 0, layer.width, layer.height);
       layerCtx.setTransform(dpr * scale, 0, 0, -dpr * scale, cx * dpr, cy * dpr);
       const paths = Array.from({ length: COLORS * WIDTHS.length }, () => new Path2D());
-      const hot = new Path2D();
+      const hot = new Path2D(), tips = new Path2D();
       for (const p of particles) {
         if (time < p.t0) continue;
-        const path = time < p.t1 + 0.3 ? hot : paths[p.bucket];
-        path.moveTo(p.x, p.y);
-        path.lineTo(p.x + p.dx, p.y + p.dy);
-        if (path === hot) {
-          // Landing flash: draw the stroke in its own colour too, so it stays once the flash fades.
-          paths[p.bucket].moveTo(p.x, p.y);
-          paths[p.bucket].lineTo(p.x + p.dx, p.y + p.dy);
+        const ex = p.x + p.dx * p.grow, ey = p.y + p.dy * p.grow;
+        paths[p.bucket].moveTo(p.x, p.y);
+        paths[p.bucket].lineTo(ex, ey);
+        if (time < p.t1 + 0.3) {
+          // Fresh strokes flash bright; the stroke being drawn carries a glowing pen tip.
+          hot.moveTo(p.x, p.y);
+          hot.lineTo(ex, ey);
+          if (time < p.t1) {
+            tips.moveTo(ex + 1.7, ey);
+            tips.arc(ex, ey, 1.7, 0, Math.PI * 2);
+          }
         }
       }
       layerCtx.globalCompositeOperation = 'lighter';
@@ -280,6 +279,9 @@
       layerCtx.strokeStyle = '#fff0fa';
       layerCtx.globalAlpha = 0.85;
       layerCtx.stroke(glintPath);
+      layerCtx.fillStyle = '#ffffff';
+      layerCtx.globalAlpha = 0.95;
+      layerCtx.fill(tips);
 
       // Composite the particles, then add the bloom on top.
       ctx.setTransform(1, 0, 0, 1, 0, 0);

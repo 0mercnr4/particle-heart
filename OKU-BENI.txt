@@ -14,8 +14,8 @@ masaüstü sürümüdür. Python 3 ve Tk desteği gerekir. Python yüklü değil
 index.html sürümünü kullan; ayrıca kurulum gerektirmez.
 
 Animasyon (index.html):
-1000 parçacık ekranın dışından spiral çizerek gelip kalbin formunu kurar,
-ardından 3500 parçacık kalbi doldurup kenarlarını parlatır (yaklaşık 9 saniye).
+Pembe çizgiler, videodaki Python kodu gibi kalemle tek tek çizilir: önce 1000 çizgi kalbin formunu kurar,
+ardından 3500 çizgi kalbi doldurup kenarlarını parlatır (yaklaşık 11 saniye).
 Kalp oluştuktan sonra gerçek bir kalp gibi "güm-güm" atmaya başlar; arkasındaki
 pembe ışıma atışla birlikte nefes alır, içinde kıvılcımlar parlar.
 
