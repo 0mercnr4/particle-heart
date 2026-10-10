@@ -1,0 +1,23 @@
+PEMBE PARÇACIK KALBİ
+
+Tarayıcıda kullanma:
+index.html dosyasına çift tıkla. İnternet bağlantısı gerekmez.
+
+Telefonda açma:
+Bilgisayar ve telefon aynı Wi-Fi ağına bağlıyken TELEFONDA-AC.bat dosyasını
+çalıştır. Siyah pencerede görünen http:// adresini telefon tarayıcısına yaz.
+Animasyon devam ederken pencereyi kapatma.
+
+Python Turtle sürümü:
+parcacik_kalbi.py, videoda görünen Python/Turtle yaklaşımının tamamlanmış
+masaüstü sürümüdür. Python 3 ve Tk desteği gerekir. Python yüklü değilse
+index.html sürümünü kullan; ayrıca kurulum gerektirmez.
+
+Animasyon iki aşamada yaklaşık 11 saniyede oluşur: önce 1000 parçacık kalbin
+formunu kurar, ardından 3500 kısa çizgi kalbi doldurup pembe parıltıyı artırır.
+Son kare ekranda kalır.
+Animasyonu yeniden başlatmak için tuvale tıkla veya dokun.
+
+Ekran görüntüsündeki kodun matematiksel kalp formülü, turtle çizim yöntemi,
+1000 iç parçacık ve 3500 dış parçacık döngüsü alındı. Okunması zor kalan
+renk aralıkları ve güncelleme adımları çalışır olacak şekilde tamamlandı.

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Pembe Parçacık Kalbi</title>
+  <style>
+    html, body { width:100%; height:100%; margin:0; background:#000; overflow:hidden; }
+    body { display:grid; place-items:center; }
+    canvas { display:block; width:min(94vmin, 760px); height:min(94vmin, 760px); touch-action:manipulation; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  </style>
+</head>
+<body>
+  <canvas id="art" role="img" aria-label="Siyah zeminde pembe parçacık çizgilerinden oluşan kalp animasyonu"></canvas>
+  <p class="sr-only">Pembe parçacık çizgileri kalbi oluşturur. Animasyonu yeniden başlatmak için ekrana dokun.</p>
+  <script>
+  (() => {
+    'use strict';
+    const canvas=document.getElementById('art');
+    const ctx=canvas.getContext('2d',{alpha:false});
+    const fillTotal=1000, detailTotal=3500;
+    const fillDuration=3.4, edgeDuration=7.2, duration=fillDuration+edgeDuration;
+    let size=1, dpr=1, particles=[], buffer, bufferCtx, active=[], drawn=0;
+    let startedAt=performance.now(), playing=true, elapsed=0;
+    const random=(min,max)=>min+Math.random()*(max-min);
+
+    function heart(angle,scale) {
+      const x=16*Math.sin(angle)**3*scale;
+      const y=(13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))*scale;
+      return {x,y};
+    }
+    function makeParticle(scale,length,colorRanges,edge) {
+      const angle=random(0,Math.PI*2);
+      const point=heart(angle,scale);
+      const x=size/2+point.x*size/700;
+      const y=size/2-point.y*size/700;
+      const direction=Math.atan2(point.y,point.x);
+      const distance=random(...length)*size/700;
+      const color=colorRanges.map(([min,max])=>Math.round(random(min,max)*255));
+      return {
+        x1:x, y1:y,
+        x2:x+Math.cos(direction)*distance,
+        y2:y-Math.sin(direction)*distance,
+        color:`rgb(${color[0]} ${color[1]} ${color[2]})`,
+        width:random(edge?.55:.45,edge?1.55:1.2)*Math.max(1,size/700),
+        edge
+      };
+    }
+    function prepare() {
+      const rect=canvas.getBoundingClientRect();
+      size=Math.max(1,Math.min(rect.width,rect.height));
+      dpr=Math.max(2,Math.min(3,devicePixelRatio||1));
+      canvas.width=Math.round(size*dpr); canvas.height=Math.round(size*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      buffer=document.createElement('canvas');
+      buffer.width=canvas.width; buffer.height=canvas.height;
+      bufferCtx=buffer.getContext('2d');
+      bufferCtx.setTransform(dpr,0,0,dpr,0,0);
+      bufferCtx.lineCap='round';
+      particles=[];
+      for(let i=0;i<fillTotal;i++) {
+        particles.push(makeParticle(random(.5,15.5),[4,14],[[.78,1],[.12,.43],[.42,.94]],false));
+      }
+      for(let i=0;i<detailTotal;i++) {
+        particles.push(makeParticle(random(.5,15.5),[2,12],[[.75,1],[.1,.35],[.45,.95]],true));
+      }
+      drawn=0; active=[]; elapsed=0; startedAt=performance.now(); playing=true;
+      canvas.dataset.particleCount=String(particles.length);
+      canvas.dataset.resolution=`${canvas.width}x${canvas.height}`;
+    }
+    function drawStatic(particle) {
+      bufferCtx.beginPath();
+      bufferCtx.moveTo(particle.x1,particle.y1);
+      bufferCtx.lineTo(particle.x2,particle.y2);
+      bufferCtx.strokeStyle=particle.color;
+      bufferCtx.lineWidth=particle.width;
+      bufferCtx.globalAlpha=particle.edge?.76:.58;
+      bufferCtx.stroke();
+      bufferCtx.globalAlpha=1;
+    }
+    function drawSpark(particle,age) {
+      const alpha=Math.max(0,1-age/.34);
+      if(!alpha) return;
+      ctx.beginPath();
+      ctx.moveTo(particle.x1,particle.y1);
+      ctx.lineTo(particle.x2,particle.y2);
+      ctx.strokeStyle=age<.12?'#fff0ff':particle.color;
+      ctx.lineWidth=particle.width+alpha*.65;
+      ctx.globalAlpha=alpha*.9;
+      ctx.shadowColor='#ff67cc';
+      ctx.shadowBlur=3+alpha*5;
+      ctx.stroke();
+      ctx.globalAlpha=1; ctx.shadowBlur=0;
+    }
+    function frame(now) {
+      if(playing) elapsed=Math.min(duration,(now-startedAt)/1000);
+      const fillCount=Math.floor(Math.min(1,elapsed/fillDuration)*fillTotal);
+      const detailProgress=Math.max(0,Math.min(1,(elapsed-fillDuration)/edgeDuration));
+      const target=fillCount+Math.floor(detailProgress*detailTotal);
+      while(drawn<target) {
+        const particle=particles[drawn++];
+        drawStatic(particle);
+        active.push({particle,born:elapsed});
+      }
+      ctx.clearRect(0,0,size,size);
+      ctx.drawImage(buffer,0,0,size,size);
+      active=active.filter(spark=>elapsed-spark.born<.34);
+      for(const spark of active) drawSpark(spark.particle,elapsed-spark.born);
+      if(elapsed>=duration) playing=false;
+      if(playing||active.length) requestAnimationFrame(frame);
+    }
+    function restart() { prepare(); requestAnimationFrame(frame); }
+    canvas.addEventListener('click',()=>{ if(!playing) restart(); });
+    addEventListener('resize',prepare);
+    prepare();
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
