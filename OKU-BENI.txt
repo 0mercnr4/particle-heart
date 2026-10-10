@@ -13,10 +13,17 @@ parcacik_kalbi.py, videoda görünen Python/Turtle yaklaşımının tamamlanmı�
 masaüstü sürümüdür. Python 3 ve Tk desteği gerekir. Python yüklü değilse
 index.html sürümünü kullan; ayrıca kurulum gerektirmez.
 
-Animasyon iki aşamada yaklaşık 11 saniyede oluşur: önce 1000 parçacık kalbin
-formunu kurar, ardından 3500 kısa çizgi kalbi doldurup pembe parıltıyı artırır.
-Son kare ekranda kalır.
-Animasyonu yeniden başlatmak için tuvale tıkla veya dokun.
+Animasyon (index.html):
+1000 parçacık ekranın dışından spiral çizerek gelip kalbin formunu kurar,
+ardından 3500 parçacık kalbi doldurup kenarlarını parlatır (yaklaşık 9 saniye).
+Kalp oluştuktan sonra gerçek bir kalp gibi "güm-güm" atmaya başlar; arkasındaki
+pembe ışıma atışla birlikte nefes alır, içinde kıvılcımlar parlar.
+
+Etkileşim:
+- Dokun / tıkla: kalp o noktadan dağılır ve yeniden toplanır.
+- Fareyle üzerinde gez veya parmağını sürükle: parçacıklar kenara kaçar.
+- Çift dokun: animasyon baştan başlar.
+Cihazda "hareketi azalt" ayarı açıksa sakin, sabit bir kalp gösterilir.
 
 Ekran görüntüsündeki kodun matematiksel kalp formülü, turtle çizim yöntemi,
 1000 iç parçacık ve 3500 dış parçacık döngüsü alındı. Okunması zor kalan
