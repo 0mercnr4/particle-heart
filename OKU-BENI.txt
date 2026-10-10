@@ -23,7 +23,8 @@ Etkileşim:
 - Dokun / tıkla: kalp o noktadan dağılır ve yeniden toplanır.
 - Fareyle üzerinde gez veya parmağını sürükle: parçacıklar kenara kaçar.
 - Çift dokun: animasyon baştan başlar.
-Cihazda "hareketi azalt" ayarı açıksa sakin, sabit bir kalp gösterilir.
+Windows animasyonları kapalıysa ("hareketi azalt") çizim yine oynar; sadece
+arka plan tozu durur ve kalp atışı hafifler.
 
 Ekran görüntüsündeki kodun matematiksel kalp formülü, turtle çizim yöntemi,
 1000 iç parçacık ve 3500 dış parçacık döngüsü alındı. Okunması zor kalan
